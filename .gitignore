@@ -52,4 +52,5 @@ build
 
 /src/release
 /release
+/dev-release
 /bower_components
