@@ -31,9 +31,10 @@
     $scope.RPJMDesList = [];
     $scope.treesData = [];
     $scope.basicConfigs = [];
-    $scope.currentTabIndex = 0;
+    // $scope.currentTabIndex = 1;
     $scope.selectedBidang = {};
     $scope.selectedRPJMDes = {};
+    $scope.selectedWaktuPelaksanaan = {};
 
     $scope.basicConfig = {
       core: {
@@ -70,6 +71,10 @@
         })
       })
 
+      angular.forEach($scope.waktuPelaksanaanList, function(item, index){
+        vm.treesData[index] = vm.treeData;
+      })
+
       getRPJMDesByWaktu($scope.waktuPelaksanaanList);
     }
 
@@ -86,7 +91,7 @@
           }
         }, function (result) {
           $scope.RPJMDesList[i] = result;
-          var treeData = angular.copy(vm.treeData);
+          var treeData = angular.copy(vm.treesData[i]);
 
           angular.forEach(result, function (rpjmdes, index, arr) {
             var bidang = rpjmdes.Bidang;
@@ -170,8 +175,6 @@
           $scope.treesData[i] = treesData[i];
           $scope.basicConfigs[i].version++;
         }
-
-        $scope.waktuPelaksanaanList[$scope.currentTabIndex].active = true;
       })
     }
 
@@ -207,27 +210,30 @@
         $scope.waktuPelaksanaanList = result.WaktuPelaksanaan;
         $scope.polaPelaksanaanList = result.PolaPelaksanaan;
         $scope.sumberBiayaItemList = result.SumberBiayaItem;
-        vm.treesData.length = $scope.waktuPelaksanaanList.length;
+        vm.treesData.length = 0;
+        $scope.treesData.length = 0;
         populateRPJMDes($scope.bidangList);
       })
     }
 
     function getActiveTab() {
-      return $scope.waktuPelaksanaanList.filter(function (waktu) {
-        return waktu.active;
-      })[0];
+      return $scope.selectedWaktuPelaksanaan;
     };
+
+    $scope.tabSelected = function(tab) {
+      $scope.selectedWaktuPelaksanaan = tab;
+    }
 
     getActiveRPJM();
 
     
     $scope.refresh = function () {
-      var ind = getActiveTab().No -1;
-      $scope.currentTabIndex = ind;
-      $scope.ignoreChanges = true;
-      newId = 0;
+      // var ind = getActiveTab().No;
+      // $scope.currentTabIndex = ind;
+      // $scope.ignoreChanges = true;
+      // newId = 0;
       getActiveRPJM();
-      $scope.basicConfigs[ind].version++;
+      // $scope.basicConfigs[ind].version++;
     };
 
     $scope.expand = function () {
@@ -266,9 +272,9 @@
       var node = data.node;
       var parent = node.parent;
       var selectedId = node.id;
-      $scope.currentTabIndex = getActiveTab().No -1;
+      var ind = getActiveTab().No -1;
       if (node.type === 'pricetag') {
-        $scope.selectedNode = $filter('filter')($scope.RKPList[$scope.currentTabIndex], { id: selectedId })[0];
+        $scope.selectedNode = $filter('filter')($scope.RKPList[ind], { id: selectedId })[0];
         if ($scope.selectedNode.SumberBiaya && $scope.selectedNode.SumberBiaya.length > 0) {
           $scope.selectedSumberBiaya = $scope.selectedNode.SumberBiaya;
         } else {
@@ -286,7 +292,7 @@
         $scope.$apply();
       } else {
         $scope.selectedBidang = $filter('filter')($scope.bidangList, { id: parent })[0];
-        $scope.selectedRPJMDes = $filter('filter')($scope.RPJMDesList[$scope.currentTabIndex], { id: selectedId })[0];
+        $scope.selectedRPJMDes = $filter('filter')($scope.RPJMDesList[ind], { id: selectedId })[0];
         $scope.selectedNode = false;
         $scope.$apply();
       }

@@ -1,5 +1,5 @@
-<uib-tabset>
-  <uib-tab index="$index + 1" ng-repeat="waktuPelaksanaan in waktuPelaksanaanList" active="waktuPelaksanaan.active">
+<uib-tabset active="currentTabIndex">
+  <uib-tab index="$index + 1" ng-repeat="waktuPelaksanaan in waktuPelaksanaanList" select="tabSelected(waktuPelaksanaan)">
     <uib-tab-heading>
       {{waktuPelaksanaan.Nama}}
     </uib-tab-heading>
