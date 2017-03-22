@@ -78,8 +78,26 @@
       getRPJMDesByWaktu($scope.waktuPelaksanaanList);
     }
 
+    function populateRPJMDesByWaktu(bidangList, waktuPelaksanaan) {
+      var index = waktuPelaksanaan.No - 1;
+      vm.treesData[index] = [];
+      angular.forEach(bidangList, function (bidang) {
+        vm.treesData[index].push({
+          "id": bidang.id,
+          "parent": "#",
+          "type": "folder",
+          "text": bidang.No + " " + bidang.Nama,
+          "state": {
+            "opened": true
+          }
+        })
+      })
+
+      getRPJMDesByWaktu([waktuPelaksanaan]);
+    }
+
     function getRPJMDesByWaktu(waktuPelaksanaanList) {
-      var promises = waktuPelaksanaanList.map(function (waktupelaksanaan, i) {
+      var promises = waktuPelaksanaanList.map(function (waktupelaksanaan) {
         var deferred = $q.defer();
 
         WaktuPelaksanaan.RPJMDes({
@@ -90,8 +108,9 @@
             ]
           }
         }, function (result) {
-          $scope.RPJMDesList[i] = result;
-          var treeData = angular.copy(vm.treesData[i]);
+          var indexWaktuPel = waktupelaksanaan.No - 1;
+          $scope.RPJMDesList[indexWaktuPel] = result;
+          var treeData = angular.copy(vm.treesData[indexWaktuPel]);
 
           angular.forEach(result, function (rpjmdes, index, arr) {
             var bidang = rpjmdes.Bidang;
@@ -112,17 +131,17 @@
       })
 
       $q.all(promises).then(function (treesData) {
-        for (var i = 0; i < treesData.length; i++) {
-          $scope.basicConfigs[i] = $scope.basicConfig;
-          $scope.treesData[i] = treesData[i];
-          $scope.basicConfigs[i].version++;
-        }
+        waktuPelaksanaanList.forEach(function(item, index){
+          $scope.treesData[(item.No - 1)] = treesData[index];
+          $scope.basicConfigs[(item.No - 1)] = $scope.basicConfig;
+          $scope.basicConfigs[(item.No - 1)].version++;
+        })
         getRKPByWaktu(waktuPelaksanaanList);
       })
     }
 
     function getRKPByWaktu(waktuPelaksanaanList) {
-      var promises = waktuPelaksanaanList.map(function (waktupelaksanaan, i) {
+      var promises = waktuPelaksanaanList.map(function (waktupelaksanaan) {
         var deferred = $q.defer();
 
         WaktuPelaksanaan.RKP({
@@ -139,8 +158,9 @@
             ]
           }
         }, function (result) {
-          $scope.RKPList[i] = result;
-          var treeData = angular.copy($scope.treesData[i]);
+          var indexWaktuPel = waktupelaksanaan.No - 1;
+          $scope.RKPList[indexWaktuPel] = result;
+          var treeData = angular.copy($scope.treesData[indexWaktuPel]);
 
           angular.forEach(result, function (item, index, arr) {
             var bidang = item.Bidang;
@@ -171,10 +191,10 @@
       })
 
       $q.all(promises).then(function (treesData) {
-        for (var i = 0; i < treesData.length; i++) {
-          $scope.treesData[i] = treesData[i];
-          $scope.basicConfigs[i].version++;
-        }
+        waktuPelaksanaanList.forEach(function(item, index){
+          $scope.treesData[(item.No - 1)] = treesData[index];
+          $scope.basicConfigs[(item.No - 1)].version++;
+        })
       })
     }
 
@@ -227,13 +247,8 @@
     getActiveRPJM();
 
     
-    $scope.refresh = function () {
-      // var ind = getActiveTab().No;
-      // $scope.currentTabIndex = ind;
-      // $scope.ignoreChanges = true;
-      // newId = 0;
-      getActiveRPJM();
-      // $scope.basicConfigs[ind].version++;
+    $scope.refresh = function (waktuPelaksanaan) {
+      populateRPJMDesByWaktu($scope.bidangList, waktuPelaksanaan);
     };
 
     $scope.expand = function () {
@@ -303,8 +318,9 @@
     };
 
     $scope.deleteRKP = function(rkp) {
+      var currentWaktuPelaksanaan = getActiveTab();
       RKP.deleteById({ id: rkp.id }, function () {
-                $scope.refresh();
+                $scope.refresh(currentWaktuPelaksanaan);
                 $scope.open('app/pages/ui/modals/modalTemplates/successModal.html');
             })
     }
@@ -334,6 +350,7 @@
     }
 
     $scope.editRKP = function (rkp) {
+      var currentWaktuPelaksanaan = getActiveTab();
       RKP.prototype$updateAttributes({
         id: rkp.id,
         Nama: rkp.Nama,
@@ -347,7 +364,7 @@
         TanggalSelesai: rkp.TanggalSelesai
       }, function (result) {
         reCreateSumberBiaya(rkp, function (res) {
-          $scope.refresh();
+          $scope.refresh(currentWaktuPelaksanaan);
           $scope.open('app/pages/ui/modals/modalTemplates/successModal.html');
         })
         
@@ -395,7 +412,7 @@
             TanggalSelesai: newRKP.TanggalSelesai
           }, function(res){
             $scope.open('app/pages/ui/modals/modalTemplates/successModal.html');
-            $scope.refresh();
+            $scope.refresh(currentWaktuPelaksanaan);
           })
         } else {
           RKP.create({
@@ -412,7 +429,7 @@
             TanggalSelesai: newRKP.TanggalSelesai
           }, function(res){
             $scope.open('app/pages/ui/modals/modalTemplates/successModal.html');
-            $scope.refresh();
+            $scope.refresh(currentWaktuPelaksanaan);
           })
         }
       })

@@ -39,6 +39,7 @@
     $scope.belanjaTree = {};
     $scope.belanjaTreeData = [];
     $scope.selectedRABNode;
+    $scope.selectedWaktuPelaksanaan = {};
 
     $scope.belanjaConfig = {
       core: {
@@ -249,10 +250,12 @@
     }
 
     function getActiveTab() {
-      return $scope.waktuPelaksanaanList.filter(function (waktu) {
-        return waktu.active;
-      })[0];
+      return $scope.selectedWaktuPelaksanaan;
     };
+
+    $scope.tabSelected = function(tab) {
+      $scope.selectedWaktuPelaksanaan = tab;
+    }
 
     getActiveRPJM();
 
