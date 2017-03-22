@@ -34,7 +34,7 @@
     $scope.basicConfigs = [];
     $scope.selectedBidang = {};
     $scope.selectedRPJMDes = {};
-    $scope.selectedBelanja = {};
+    $scope.selectedBelanja;
     $scope.belanjaTree = {};
     $scope.belanjaTreeData = [];
     $scope.selectedRABNode;
@@ -384,11 +384,23 @@
     function onSelected(e, data) {
       var node = data.node;
       var parent = node.parent;
+      var parents = node.parents;
       var selectedId = node.id;
       var ind = getActiveTab().No -1;
+      $scope.selectedBelanja = false;
       if (node.type === 'pricetag') {
+        var parentNo;
+        if (parents.length === 3) {
+          var rpjmdes = $filter('filter')($scope.RPJMDesList[ind], { id: parents[0] })[0];
+          var bidang = $filter('filter')($scope.bidangList, { id: parents[1] })[0];
+          parentNo = bidang.No + '.' + rpjmdes.No;
+        } else {
+          var rpjmdesOrBidang = $filter('filter')($scope.RPJMDesList[ind], { id: parent })[0] || $filter('filter')($scope.bidangList, { id: parent })[0];
+          parentNo = rpjmdesOrBidang.No;
+        }
         $scope.selectedNode = $filter('filter')($scope.RKPList[ind], { id: selectedId })[0];
         $scope.selectedNode.TotalBiaya = 0;
+        $scope.selectedNode.parentNo = parentNo;
         if ($scope.selectedNode.SumberBiaya && $scope.selectedNode.SumberBiaya.length > 0) {
           $scope.selectedSumberBiaya = $scope.selectedNode.SumberBiaya;
           $scope.selectedNode.SumberBiaya.forEach(function(entry){
@@ -416,12 +428,22 @@
       var selectedId = node.id;
       if (node.type === 'rkp') {
         $scope.selectedRABNode = false;
+        $scope.selectedBelanja = false;
       } else if (node.type === 'belanja') {
         $scope.selectedBelanja = $filter('filter')($scope.selectedNode.Belanja, { id: selectedId })[0];
         $scope.selectedRABNode = false;
+        if ($scope.selectedBelanja.RAB) {
+          $scope.selectedBelanja.TotalBiaya = 0;
+          $scope.selectedBelanja.RAB.forEach(function(entry){
+            var harga = entry.Volume * entry.HargaSatuan;
+            $scope.selectedBelanja.TotalBiaya += harga;
+          })
+        }
       } else if (node.type === 'rab') {
-        var belanjaList = $filter('filter')($scope.selectedNode.Belanja, { id: parent })[0];
-        $scope.selectedRABNode = $filter('filter')(belanjaList.RAB, { id: selectedId })[0];
+        var belanja = $filter('filter')($scope.selectedNode.Belanja, { id: parent })[0];
+        $scope.selectedRABNode = $filter('filter')(belanja.RAB, { id: selectedId })[0];
+        $scope.selectedRABNode.belanjaNo = belanja.No;
+        $scope.selectedBelanja = false;
       }
       $scope.$apply();
     }
